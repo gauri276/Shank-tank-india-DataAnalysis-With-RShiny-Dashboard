@@ -1,0 +1,723 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+df <- read.csv("C:/Users/Gauri/OneDrive/Desktop/DS_lab/cp/Shark Tank India_modified dataset(2).csv")
+print(df)
+
+```
+```{r}
+
+dim(df)
+```
+
+```{r}
+column_names <- names(df)
+print(column_names)
+column_names <- colnames(df)
+print(column_names)
+```
+```{r}
+missing_counts <- colSums(is.na(df))
+print(missing_counts)
+
+```
+##Q1.From which state more pithcers visited Shark Tank India.
+```{r}
+pitchers_state_counts <- as.data.frame(table(df$`Pitchers.State`))
+pitchers_state_counts <- data.frame(State = pitchers_state_counts$`Var1`, Count = pitchers_state_counts$Freq)
+print(pitchers_state_counts)
+if (!require(dplyr)) {
+  install.packages("dplyr")
+}
+
+library(dplyr)
+
+g1 <- df %>%
+  group_by(Pitchers.State) %>%
+  summarize(count = n())
+colnames(g1) <- c("Pitchers.State", "Count")
+print(g1)
+library(ggplot2)
+
+data <- data.frame(
+  State = c(
+    "Arunachal Pradesh", "Bihar", "Chhattisgarh", "Delhi", "Maharashtra",
+    "Punjab", "Goa", "Gujarat", "Uttar Pradesh", "Haryana",
+    "Madhya Pradesh", "Maharashtra", "West Bengal",
+    "Himachal Pradesh", "Jammu & Kashmir", "Jharkhand", "Chhattisgarh",
+    "Karnataka", "Andhra Pradesh", "Telangana", "West Bengal",
+    "Kerala", "Maharashtra", "Madhya Pradesh", "Maharashtra", "Punjab",
+    "Rajasthan", "Tamil Nadu", "Telangana", "Maharashtra", "Uttar Pradesh",
+    "Uttarakhand", "Uttar Pradesh", "West Bengal"
+  ),
+  Count = c(
+    1, 4, 1, 44, 1, 1, 3, 32, 1, 18, 1, 1, 1, 1, 3, 1, 1, 34, 1, 1, 1, 2, 1, 5, 92, 8, 11, 8, 12, 1, 13, 1, 1, 13
+  )
+)
+
+ggplot(data, aes(x = State, y = Count)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(
+    title = "Pitchers by State",
+    x = "State",
+    y = "Count"
+  )
+
+```
+->Greater number of pithcher belongs Maharashtra state
+
+##Q2.What is major industry for startups have visited Shark Tank India.
+```{r}
+g2 <- df %>%
+  group_by(Industry) %>%
+  summarize(count = n())
+colnames(g2) <- c("Industry", "Count")
+print(g2)
+```
+
+```{r}
+library(ggplot2)
+ggplot(data = g2, aes(x = Count, y =Industry)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(
+    title = "Industry Wise Startup",
+    x = "Count",
+    y = "Industry"
+  )
+
+
+```
+->Food industry is much more popular in startups.
+
+## Q3.How many starups are having yearly revenue greater than 400L and which one having the greatest revenue ?
+```{r}
+
+library(dplyr)
+str(df)
+
+# Check for NA values in the 'Yearly Revenue' column
+is.na(df$`Yearly Revenue`)
+
+# Group by 'Startup.Name' and calculate the sum of 'Yearly Revenue' while ignoring NAs
+g3 <- df %>%
+  group_by(`Startup.Name`) %>%
+  summarise(`Yearly.Revenue` = sum(`Yearly.Revenue`, na.rm = TRUE))
+
+# Filter for rows with 'Yearly.Revenue' greater than 400
+g4 <- g3 %>% filter(`Yearly.Revenue` > 400)
+
+# Count the number of rows in the filtered data
+count <- nrow(g4)
+
+# Create a boxplot of 'Yearly.Revenue' in the filtered data
+boxplot(g4$`Yearly.Revenue`, main = "Boxplot of Yearly Revenue (Filtered)")
+
+
+```
+-> There are 23 startups having yearly revenue greater than 400 L
+
+```{r}
+# Load required libraries
+# Load required libraries
+library(plotly)
+p <- plot_ly(data = df, x = ~Original.Ask.Amount, y = ~Startup.Name, text = ~Startup.Name, mode = "markers", type = "scatter") %>%
+  layout(title = "Scatter Plot with Hover Text", xaxis = list(title = "Original Ask Amount"))
+
+
+# Add layout settings for the plot
+p <- p %>%
+  layout(title = "Scatter Plot with Hover Text",
+         xaxis = list(title = "Original Ask Amount"),
+         yaxis = list(title = ""),
+         showlegend = FALSE)
+
+# Display the interactive plot
+p
+
+
+```
+
+
+##Q4.What is the average range of Yearly revenue of startups are their any outliars ?
+```{r}
+library(ggplot2)
+ggplot(g4, aes(x = `Startup.Name`, y = `Yearly.Revenue`)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Yearly Revenue of Startups Greater than 400L",
+    x = "Startup.Name",
+    y = "Yearly.Revenue"
+  ) +
+  coord_flip()
+
+
+```
+->Average Range of yearly revenue is approximately 700 to 1500 L, there are 3 outliars.
+French Crown have the highest Yearly Revenue.
+```{r}
+
+g5 <- g3[g3$Yearly.Revenue > 1, ]
+library(ggplot2)
+library(ggplot2)
+ggplot(g5, aes(x = 1, y = `Yearly.Revenue`)) +
+  geom_violin(fill = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Violin Plot of Yearly Revenue",
+    x = "",  # Remove x-axis label
+    y = "Yearly.Revenue"
+  )
+
+
+
+```
+
+
+##Q.5 which greater average age type visited Shark tank india
+
+```{r}
+age_count<- table(df$'Pitchers.Average.Age')
+print(age_count)
+```
+```{r}
+library(ggplot2)
+age_counts <- table(df$`Pitchers.Average.Age`)
+age_df <- data.frame(Age = names(age_counts), Count = age_counts)
+ggplot(age_df, aes(x = Age, y = age_count)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Pitcher Average Age",
+    x = "Pitchers Age Group",
+    y = "Count"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(axis.title.x = element_text(size = 12)) +
+  theme(axis.title.y = element_text(size = 12))
+
+
+```
+Middle age pitcher were more active in Shark Tank India
+
+```{r}
+if (!requireNamespace("cowplot", quietly = TRUE)) {
+  install.packages("cowplot")
+}
+library(cowplot)
+
+# Install and load the ggplot2 package
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+library(ggplot2)
+
+# Pie chart
+pie_chart <- ggplot(df, aes(x = "", fill = total_sharks_invested)) +
+  geom_bar(width = 1) +
+  coord_polar(theta = "y") +
+  labs(
+    title = "Total Sharks Invested (Pie Chart)",
+    fill = "Total Sharks Invested"
+  ) +
+  theme_minimal() +
+  theme(axis.text = element_blank(), 
+        axis.title = element_blank(),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 10))
+my_colors <- c("red", "green", "blue")
+
+
+
+```
+```{r}
+# Install and load the plotly library if not already installed
+if (!require(plotly)) {
+  install.packages("plotly")
+}
+library(plotly)
+shark_names <- c("Aman", "Piyush", "Namita","Anupam", "Vinita","Ashneer") 
+# Create data for the pie chart
+pie_data <- table(df$total_sharks_invested)
+labels <- names(pie_data)
+
+# Create a data frame for the pie chart
+pie_df <- data.frame(label = labels, value = as.numeric(pie_data))
+
+
+# Create the 3D pie chart
+fig <- plot_ly(pie_df, labels = ~shark_names, values = ~value, type = "pie", pull = 0.1) %>%
+  layout(title = "Total Sharks Invested")
+annotations <- list(
+  x = 1, y = 1,
+  showarrow = FALSE,
+  xanchor = "right",
+  yanchor = "top"
+)
+fig <- fig %>% layout(annotations = annotations)
+
+# Display the 3D pie chart
+fig
+
+
+```
+```{r}
+# Install and load the required packages
+library(plotly)
+library(dplyr)
+
+# Create the 3D scatter plot with layout settings
+figure <- plot_ly(data = df, type = 'scatter3d', mode = 'markers',
+                  x = ~pitcher_ask_amount, y = ~ask_equity, z = ~deal_amount,
+                  marker = list(size = 8, color = ~deal_valuation, colorscale = 'Blues', 
+                                colorbar = list(title = 'Deal Valuation', show = TRUE)),
+                  text = ~brand_name, hovertemplate = 'Brand: %{text}<br>Investment Amount: %{x}<br>Equity Offered: %{y}<br>Deal Valuation: %{z}<extra></extra>',
+                  layout = list(
+                    title = "Investment Amount, Equity Offered, and Deal Valuation on Shark Tank India",
+                    scene = list(
+                      xaxis = list(title = "Investment Amount"),
+                      yaxis = list(title = "Equity Offered"),
+                      zaxis = list(title = "Deal Amount")
+                    ),
+                    template = "plotly_dark"
+                  )
+)
+
+# Show the plot
+figure
+
+```
+```{r}
+#R shiny Dashboard
+library(shiny)
+library(shinydashboard)
+library(ggplot2)
+library(dplyr)
+
+# Read data from a CSV file (Replace with your data path)
+data <- read.csv("C:/Users/Gauri/OneDrive/Desktop/DS_lab/cp/Shark Tank India_modified dataset(2).csv")
+
+# Define UI
+ui <- dashboardPage(
+  dashboardHeader(
+    title = "Shark Tank Investors",
+    titleWidth = "250px",
+    tags$li(
+      class = "dropdown",
+      tags$a(
+        href = "https://upload.wikimedia.org/wikipedia/en/6/68/Shark_Tank_Logo.jpg",
+        target = "_blank",
+        tags$img(src = "https://upload.wikimedia.org/wikipedia/en/6/68/Shark_Tank_Logo.jpg", height = "80px", width = "80px"),
+        style = "padding: 10px 10px 10px 10px;"
+      )
+    )
+  ),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Aman Gupta", tabName = "aman", icon = icon("user")),
+      menuItem("Vineeta Singh", tabName = "vineeta", icon = icon("user")),
+      menuItem("Peyush Bansal", tabName = "peyush", icon = icon("user")),
+      menuItem("Ashneer Grover", tabName = "ashneer", icon = icon("user")),
+      menuItem("Anupam Mittal", tabName = "anupam", icon = icon("user"))
+    )
+  ),
+  dashboardBody(
+    tabItems(
+      # Tab for Aman Gupta
+      tabItem(
+        tabName = "aman",
+        fluidRow(
+          box(
+            title = "Overall Performance",
+            width = 6,
+            status = "primary",
+            "This is a summary of Aman Gupta's overall performance."
+          ),
+          box(
+            title = "Investment Success",
+            width = 6,
+            status = "warning",
+            "This is a summary of Aman Gupta's investment success."
+          )
+        ),
+        fluidRow(
+          box(
+            width = 6,
+            status = "primary",
+            div(
+              style = "display: flex; flex-direction: column; align-items: center; text-align: center;",
+              img(src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTugpbFWH4MU9B1rgJU_8fWQ_mdK7vSqOsKFA&usqp=CAU", height = "170px", width = "200px"),
+              h2("Aman Gupta"),
+              "Aman is the co-founder and chief marketing officer of an earwear audio company called boAt."
+            )
+          ),
+          box(
+            title = "Investment Industries",
+            width = 6,
+            status = "primary",
+            plotOutput("aman_pie_chart", height = "300px")
+          ),
+          br(),
+          box(
+            title = "Total Investment",
+            width = 6,
+            status = "primary",
+            div(
+              style = "border: 1px solid black; padding: 10px;",
+              p("100 L")
+            )
+          ),
+          box(
+            title = "Number of Companies",
+            width = 6,
+            status = "primary",
+            div(
+              style = "border: 1px solid black; padding: 10px;",
+              p("19")
+            )
+          ),
+          br(),
+          box(
+            title = "Go Back to Home",
+            width = 12,
+            status = "success",
+            actionButton("aman_gobackbutton", "Go Back")
+          )
+        )
+      ),
+
+      # Tab for Vineeta Singh (Repeat a similar structure for other investors)
+      tabItem(
+        tabName = "vineeta",
+        fluidRow(
+          box(
+            title = "Overall Performance",
+            width = 6,
+            status = "primary",
+            "This is a summary of Vineeta Singh's overall performance."
+          ),
+          box(
+            title = "Investment Success",
+            width = 6,
+            status = "warning",
+            "This is a summary of Vineeta Singh's investment success."
+          )
+        ),
+        fluidRow(
+          box(
+            width = 6,
+            status = "primary",
+            div(
+              style = "display: flex; flex-direction: column; align-items: center; text-align: center;",
+              img(src = "https://starsfolded.com/wp-content/uploads/2023/03/vineeta.jpg", height = "170px", width = "200px"),
+              h2("Vineeta Singh"),
+              "Vineeta Singh is an Indian entrepreneur and CEO and co-founder of Sugar Cosmetics."
+            )
+          ),
+          box(
+            title = "Investment Industries",
+            width = 6,
+            status = "primary",
+            plotOutput("vineeta_pie_chart", height = "300px")
+          ),
+          br(),
+          box(
+            title = "Total Investment",
+            width = 6,
+            status = "primary",
+            div(
+              style = "border: 1px solid black; padding: 10px;",
+              p("100 L")
+            )
+          ),
+          box(
+            title = "Number of Companies",
+            width = 6,
+            status = "primary",
+            div(
+              style = "border: 1px solid black; padding: 10px;",
+              p("19")
+            )
+          ),
+          br(),
+          box(
+            title = "Go Back to Home",
+            width = 12,
+            status = "success",
+            actionButton("vineeta_gobackbutton", "Go Back")
+          )
+        )
+      ),
+
+      # Tabs for other investors (Peyush Bansal, Ashneer Grover, Anupam Mittal)
+      tabItem(
+  tabName = "peyush",
+  fluidRow(
+    box(
+      title = "Overall Performance",
+      width = 6,
+      status = "primary",
+      "This is a summary of Peyush Bansal's overall performance."
+    ),
+    box(
+      title = "Investment Success",
+      width = 6,
+      status = "warning",
+      "This is a summary of Peyush Bansal's investment success."
+    )
+  ),
+  fluidRow(
+    box(
+      width = 6,
+      status = "primary",
+      div(
+        style = "display: flex; flex-direction; column; align-items: center; text-align: center;",
+        img(src = "https://im.indiatimes.in/content/2022/Feb/Peyush-Bansal-shark-tank-india-net-worth_6203b3d39e29c.jpg?w=1200&h=900&cc=1", height = "170px", width = "200px"),
+        h2("Peyush Bansal"),
+        "Peyush Bansal is an Indian entrepreneur and CEO and co-founder of Company LENSKART."
+      )
+    ),
+    box(
+      title = "Investment Industries",
+      width = 6,
+      status = "primary",
+      plotOutput("peyush_pie_chart", height = "300px")
+    ),
+    br(),
+    box(
+      title = "Total Investment",
+      width = 6,
+      status = "primary",
+      div(
+        style = "border: 1px solid black; padding: 10px;",
+        p("100 L")
+      )
+    ),
+    box(
+      title = "Number of Companies",
+      width = 6,
+      status = "primary",
+      div(
+        style = "border: 1px solid black; padding: 10px;",
+        p("19")
+      )
+    ),
+    br(),
+    box(
+      title = "Go Back to Home",
+      width = 12,
+      status = "success",
+      actionButton("peyush_gobackbutton", "Go Back")
+    )
+  )
+),
+
+      tabItem(
+  tabName = "ashneer",
+  fluidRow(
+    box(
+      title = "Overall Performance",
+      width = 6,
+      status = "primary",
+      "This is a summary of Ashneer Grover's overall performance."
+    ),
+    box(
+      title = "Investment Success",
+      width = 6,
+      status = "warning",
+      "This is a summary of Ashneer Grover's investment success."
+    )
+  ),
+  fluidRow(
+    box(
+      width = 6,
+      status = "primary",
+      div(
+        style = "https://cdn.inc42.com/wp-content/uploads/2023/01/Ashneer-Grover-Third-Unicorn-feature-760x570.png",
+        img(src = "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcS5XqVE28zO-RpDNASsux5oAt0Yj0biDumN6Jxj67FRhqY6zb1a", height = "170px", width = "200px"),
+        h2("Ashneer Grover"),
+        "Ashneer Grover is an Indian entrepreneur and CEO and co-founder of Company BharatPe and Grofers."
+      )
+    ),
+    box(
+      title = "Investment Industries",
+      width = 6,
+      status = "primary",
+      plotOutput("ashneer_pie_chart", height = "300px")
+    ),
+    br(),
+    box(
+      title = "Total Investment",
+      width = 6,
+      status = "primary",
+      div(
+        style = "border: 1px solid black; padding: 10px;",
+        p("100 L")
+      )
+    ),
+    box(
+      title = "Number of Companies",
+      width = 6,
+      status = "primary",
+      div(
+        style = "border: 1px solid black; padding: 10px;",
+        p("19")
+      )
+    ),
+    br(),
+    box(
+      title = "Go Back to Home",
+      width = 12,
+      status = "success",
+      actionButton("ashneer_gobackbutton", "Go Back")
+    )
+  )
+),
+
+
+      tabItem(
+        tabName = "anupam",
+        # ... (Repeat the similar structure for Anupam Mittal)
+        fluidRow(
+  box(
+    title = "Overall Performance",
+    width = 6,
+    status = "primary",
+    "This is a summary of Anupam Mittal's overall performance."
+  ),
+  box(
+    title = "Investment Success",
+    width = 6,
+    status = "warning",
+    "This is a summary of Anupam Mittal's investment success."
+  )
+),
+fluidRow(
+  box(
+    width = 6,
+    status = "primary",
+    div(
+      style = "https://akm-img-a-in.tosshub.com/sites/visualstory/stories/2023_01/story_17060/assets/4.jpeg?time=1672822340&size=*:900",
+      img(src = "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQAAV_idGTGubJ6eGz6NEQeQzcdi4ooq0_U5mmk5uyUL8z8JsS0", height = "170px", width = "200px"),
+      h2("Anupam Mittal"),
+      "Anupam Mittal is an Indian entrepreneur and CEO and co-founder of Company SHAADI.COM and People Group"
+    )
+  ),
+  box(
+    title = "Investment Industries",
+    width = 6,
+    status = "primary",
+    plotOutput("anupam_pie_chart", height = "300px")
+  ),
+  br(),
+  box(
+    title = "Total Investment",
+    width = 6,
+    status = "primary",
+    div(
+      style = "border: 1px solid black; padding: 10px;",
+      p("145 L")
+    )
+  ),
+  box(
+    title = "Number of Companies",
+    width = 6,
+    status = "primary",
+    div(
+      style = "border: 1px solid black; padding: 10px;",
+      p("19")
+    )
+  ),
+  br(),
+  box(
+    title = "Go Back to Home",
+    width = 12,
+    status = "success",
+    actionButton("anupam_gobackbutton", "Go Back")
+  )
+)
+
+      )
+    )
+  )
+)
+
+# Define server
+server <- function(input, output, session) {
+  # Define a common observer for "Go Back" buttons in each tab
+  observeEvent(input$aman_gobackbutton, {
+    updateTabsetPanel(session, "tabs", selected = "home")
+  })
+  observeEvent(input$vineeta_gobackbutton, {
+    updateTabsetPanel(session, "tabs", selected = "home")
+  })
+
+  # Create a pie chart for Aman Gupta (Repeat for other investors)
+  output$aman_pie_chart <- renderPlot({
+    data_aman <- data %>% select(Industry, aman_decision)
+    industry_counts <- count(data_aman, Industry)
+
+    ggplot(industry_counts, aes(x = "", y = n, fill = Industry)) +
+      geom_col(width = 0.5) +
+      coord_polar(theta = "y") +
+      labs(title = "Pie chart of industries where Aman Gupta invested")
+  })
+
+  # Create a pie chart for Vineeta Singh (Repeat for other investors)
+  output$vineeta_pie_chart <- renderPlot({
+    data_vineeta <- data %>% select(Industry, vineeta.decision)
+    industry_counts <- count(data_vineeta, Industry)
+
+    ggplot(industry_counts, aes(x = "", y = n, fill = Industry)) +
+      geom_col(width = 0.5) +
+      coord_polar(theta = "y") +
+      labs(title = "Pie chart of industries where Vineeta Singh invested")
+  })
+
+  # Add similar renderPlot functions for other investors
+  # ...
+  output$anupam_pie_chart <- renderPlot({
+    data_anupam <- data %>% select(Industry, anupam.decision)
+    industry_counts <- count(data_anupam, Industry)
+
+    ggplot(industry_counts, aes(x = "", y = n, fill = Industry)) +
+      geom_col(width = 0.5) +
+      coord_polar(theta = "y") +
+      labs(title = "Pie chart of industries where Anupam Mittal invested")
+  })
+ 
+  output$ashneer_pie_chart <- renderPlot({
+    data_ashneer <- data %>% select(Industry, ashneer.decision)
+    industry_counts <- count(data_ashneer, Industry)
+
+    ggplot(industry_counts, aes(x = "", y = n, fill = Industry)) +
+      geom_col(width = 0.5) +
+      coord_polar(theta = "y") +
+      labs(title = "Pie chart of industries where Ashneer Grover invested")
+  })
+
+ output$peyush_pie_chart <- renderPlot({
+    data_peyush <- data %>% select(Industry, peyush.decision)
+    industry_counts <- count(data_peyush, Industry)
+
+    ggplot(industry_counts, aes(x = "", y = n, fill = Industry)) +
+      geom_col(width = 0.5) +
+      coord_polar(theta = "y") +
+      labs(title = "Pie chart of industries where Peyush Bansal invested")
+  })
+
+}
+
+# Create Shiny app
+shinyApp(ui, server)
+```
+
